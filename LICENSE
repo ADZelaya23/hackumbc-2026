@@ -1,21 +1,27 @@
-Creative Commons CC0 1.0 Universal
+MIT License
 
-The person who associated a work with this deed has dedicated the work to
-the public domain by waiving all of their rights to the work worldwide
-under copyright law, including all related and neighboring rights, to the
-extent allowed by law.
+Copyright (c) 2026 HackUMBC 2026 team
 
-You can copy, modify, distribute and perform the work, even for commercial
-purposes, all without asking permission.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-NOTE ON THE CONTENT OF THIS DATASET
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-The data in this repository is entirely synthetic. It was produced by a
-simulation written for HackUMBC 2026. It does not describe any real person,
-and it is not UMBC's institutional data. Every student, graduate, employer,
-course, salary, and outcome is fabricated.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-No conclusion drawn from this data is a factual claim about actual UMBC
-students, graduates, or employers.
+---
 
-Full legal text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Note: this license covers the application code in this repository only.
+The underlying dataset (loaded from https://github.com/jasonpaluck/hackumbc-2026)
+is separately released under CC0 1.0 by its authors.

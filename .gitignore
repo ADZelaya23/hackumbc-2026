@@ -1,11 +1,32 @@
-# Dataset tooling is maintained separately and is not part of this repository.
-generator/
-SIGNALS.md
-PROJECT_PLAN.md
-effects.py
+# Environment / secrets
+.env
+*.env
+!.env.example
 
-# Local output
-examples/output/
+# Data (large, and CC0 but no need to bloat the repo — pull from the source repo instead)
+data/*.csv
+data/sample/*.csv
+!data/README.md
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+.pytest_cache/
+
+# Node / frontend (if React is chosen)
+node_modules/
+frontend/dist/
+frontend/build/
+.next/
+
+# OS / editor
 .DS_Store
+.vscode/
+.idea/
+
+# Snowflake / misc local artifacts
+*.log
+campus.db
