@@ -5,9 +5,14 @@ per the join graph in the dataset README. Handles the two `Not Applicable`
 sentinels (`first_job_annual_salary_usd`, `first_job_family`) documented in
 alumni.md, and the nominal-dollars gotcha (no cross-year inflation
 adjustment here yet -- flag this as a known simplification, not a fix).
+
+Note: Postgres has no built-in MEDIAN() (that's a Snowflake-ism) -- use
+PERCENTILE_CONT(0.5) WITHIN GROUP instead. Also, unquoted Postgres
+identifiers come back lowercase (unlike Snowflake, which uppercases them),
+so column access below uses lowercase keys.
 """
 
-from backend.snowflake_client import query_df
+from backend.db_client import query_df
 
 
 def salary_lens(job_family: str) -> dict:
@@ -33,7 +38,7 @@ def salary_lens(job_family: str) -> dict:
     progression_df = query_df(
         """
         SELECT seniority_level,
-               MEDIAN(annual_salary_usd) AS median_salary,
+               PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY annual_salary_usd) AS median_salary,
                COUNT(*) AS n
         FROM employment_history
         WHERE job_family = %(job_family)s
@@ -45,16 +50,16 @@ def salary_lens(job_family: str) -> dict:
     seniority_order = ["Entry", "Mid", "Senior", "Lead", "Manager", "Director"]
     progression = progression_df.to_dict("records")
     progression.sort(
-        key=lambda r: seniority_order.index(r["SENIORITY_LEVEL"])
-        if r["SENIORITY_LEVEL"] in seniority_order else 99
+        key=lambda r: seniority_order.index(r["seniority_level"])
+        if r["seniority_level"] in seniority_order else 99
     )
 
     return {
         "job_family": job_family,
         "entry": {
-            "median": float(entry_df["ANNUAL_SALARY_USD"].median()) if not entry_df.empty else None,
-            "p25": float(entry_df["ANNUAL_SALARY_USD"].quantile(0.25)) if not entry_df.empty else None,
-            "p75": float(entry_df["ANNUAL_SALARY_USD"].quantile(0.75)) if not entry_df.empty else None,
+            "median": float(entry_df["annual_salary_usd"].median()) if not entry_df.empty else None,
+            "p25": float(entry_df["annual_salary_usd"].quantile(0.25)) if not entry_df.empty else None,
+            "p75": float(entry_df["annual_salary_usd"].quantile(0.75)) if not entry_df.empty else None,
             "n": int(len(entry_df)),
         },
         "by_seniority": progression,

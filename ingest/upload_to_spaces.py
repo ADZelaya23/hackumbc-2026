@@ -2,11 +2,12 @@
 
     python ingest/upload_to_spaces.py
 
-This is optional -- it's here for the "data hosted on DigitalOcean" piece of
-the architecture. Spaces is S3-compatible, so this just uses boto3 pointed
-at the Spaces endpoint. Once uploaded, Snowflake can read from the bucket
-via an external stage (see the commented block at the bottom of
-load_to_snowflake.py) instead of loading straight from a local file.
+This is optional -- it's here as a raw-data backup/data-lake layer, separate
+from the DigitalOcean Managed PostgreSQL cluster that the app actually
+queries. Spaces is S3-compatible, so this just uses boto3 pointed at the
+Spaces endpoint. `ingest/load_to_postgres.py` always loads from local CSV
+files directly; this script doesn't feed that pipeline, it's just here so
+the raw data has a durable home on DigitalOcean too.
 
 Requires DO_SPACES_KEY / DO_SPACES_SECRET / DO_SPACES_REGION /
 DO_SPACES_BUCKET / DO_SPACES_ENDPOINT in .env.

@@ -5,7 +5,7 @@ examples/explore_sql.sql from the dataset repo: sort each person's job
 spells by start_date, pair each with the following one.
 """
 
-from backend.snowflake_client import query_df
+from backend.db_client import query_df
 
 
 def typical_first_jobs(major: str, track: str | None = None, limit: int = 5) -> list[dict]:

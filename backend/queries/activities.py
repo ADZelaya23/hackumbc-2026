@@ -2,7 +2,7 @@
 job family -- joins alumni.csv to student_experience.csv on campus_id.
 """
 
-from backend.snowflake_client import query_df
+from backend.db_client import query_df
 
 
 def correlated_activities(job_family: str, limit: int = 8) -> list[dict]:

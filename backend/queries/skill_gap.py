@@ -3,13 +3,13 @@ teaches. skill_tags (course_catalog) and role_skill_tags (employment_history)
 share one vocabulary by design -- see the dataset README -- so this is a
 plain set comparison, no mapping table needed.
 
-Note: pipe-delimited list columns are easiest to explode in pandas; Snowflake
-SQL can do it too (SPLIT_TO_TABLE / FLATTEN) but for a hackathon timeline,
-pulling the two relevant columns and exploding in pandas is simpler and the
-tables involved are tiny (72 courses, thousands of job rows).
+Note: pipe-delimited list columns are easiest to explode in pandas; Postgres
+SQL can do it too (unnest(string_to_array(col, '|'))) but for a hackathon
+timeline, pulling the two relevant columns and exploding in pandas is
+simpler and the tables involved are tiny (72 courses, thousands of job rows).
 """
 
-from backend.snowflake_client import query_df
+from backend.db_client import query_df
 
 
 def top_skills_for_job_family(job_family: str, seniority: str | None = None, top_n: int = 10) -> list[str]:
@@ -26,7 +26,7 @@ def top_skills_for_job_family(job_family: str, seniority: str | None = None, top
     if df.empty:
         return []
 
-    exploded = df["ROLE_SKILL_TAGS"].str.split("|").explode()
+    exploded = df["role_skill_tags"].str.split("|").explode()
     return exploded.value_counts().head(top_n).index.tolist()
 
 
@@ -40,8 +40,8 @@ def courses_teaching(skills: list[str]) -> list[dict]:
         return []
 
     skill_set = set(skills)
-    df["matched_skills"] = df["SKILL_TAGS"].str.split("|").apply(
+    df["matched_skills"] = df["skill_tags"].str.split("|").apply(
         lambda tags: sorted(skill_set.intersection(tags))
     )
     matches = df[df["matched_skills"].str.len() > 0]
-    return matches[["COURSE_ID", "COURSE_TITLE", "matched_skills", "PREREQUISITE_IDS"]].to_dict("records")
+    return matches[["course_id", "course_title", "matched_skills", "prerequisite_ids"]].to_dict("records")

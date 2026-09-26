@@ -12,35 +12,53 @@ The project has two phases with different honesty requirements:
    flexible questions) -- but per the dataset's own judging criteria
    ("grounded in these rows, citing the records behind every claim"), the
    model must not be allowed to invent numbers. So the chat endpoint always
-   recomputes the same aggregates the dashboard used and hands them to
-   Cortex as `computed_context`; the model's job is explanation, not
+   recomputes the same aggregates the dashboard used and hands them to the
+   model as `computed_context`; the model's job is explanation, not
    retrieval.
 
 Same backend query functions power both phases -- the dashboard just calls
 them directly, and the chat endpoint calls them to build context before
-asking Cortex.
+asking the LLM.
+
+## Why DigitalOcean end-to-end
+
+For this hackathon, DigitalOcean is provided via MLH, and it covers every
+role the app needs:
+
+- **Data warehouse:** DigitalOcean Managed PostgreSQL. The six CSVs are
+  bulk-loaded via Postgres's native `COPY` command.
+- **LLM:** DigitalOcean Gradient AI Platform's serverless inference. Its API
+  is OpenAI-compatible (`/v1/chat/completions`), so the backend just points
+  the standard `openai` Python client at DigitalOcean's base URL with a
+  model access key instead of an OpenAI key.
+- **Optional data lake:** DigitalOcean Spaces (S3-compatible object storage)
+  can hold a raw backup copy of the CSVs, independent of what's loaded into
+  Postgres.
+- **Hosting:** DigitalOcean App Platform, auto-deploying from this GitHub
+  repo on every push to `main`.
 
 ## Data flow
 
 ```
 data/*.csv (from the hackumbc-2026 dataset repo)
       │
-      ├── ingest/upload_to_spaces.py  ──▶  DigitalOcean Spaces (raw data lake, optional)
+      ├── ingest/upload_to_spaces.py   ──▶  DigitalOcean Spaces (raw backup, optional)
       │
-      └── ingest/load_to_snowflake.py ──▶  Snowflake tables (ingest/schema.sql)
-                                                  │
-                                     backend/queries/*.py (SQL via
-                                     snowflake-connector-python -> pandas)
-                                                  │
-                        ┌─────────────────────────┴─────────────────────────┐
-                        ▼                                                   ▼
-              POST /api/dashboard                                 POST /api/chat
-              (deterministic aggregates)                (same aggregates -> Cortex COMPLETE
-                                                           -> natural-language answer)
-                        │                                                   │
-                        └───────────────────────┬───────────────────────────┘
-                                                 ▼
-                                          frontend/ (GUI)
+      └── ingest/load_to_postgres.py   ──▶  DigitalOcean Managed PostgreSQL
+                                                   (ingest/schema.sql)
+                                                   │
+                                      backend/queries/*.py (SQL via
+                                      psycopg2 -> pandas)
+                                                   │
+                        ┌──────────────────────────┴─────────────────────────┐
+                        ▼                                                    ▼
+              POST /api/dashboard                                  POST /api/chat
+              (deterministic aggregates)                 (same aggregates -> DigitalOcean
+                                                            Gradient AI -> natural-language answer)
+                        │                                                    │
+                        └────────────────────────┬───────────────────────────┘
+                                                  ▼
+                                           frontend/ (GUI)
 ```
 
 ## Deploying
@@ -50,9 +68,10 @@ data/*.csv (from the hackumbc-2026 dataset repo)
    vars (Settings -> App-Level Environment Variables). Never put real
    credentials in the repo.
 3. App Platform auto-deploys on every push to `main`.
-4. The backend needs a persistent Snowflake connection at request time --
-   no separate always-on server is required beyond the one App Platform
-   component running FastAPI (+ frontend, if served from the same process).
+4. Make sure the Managed PostgreSQL cluster's trusted sources / firewall
+   allows connections from your App Platform app (DigitalOcean lets you add
+   an App Platform app directly as a trusted source on the database
+   cluster's settings page).
 
 ## Known simplifications (call these out to judges, don't hide them)
 
@@ -64,4 +83,7 @@ data/*.csv (from the hackumbc-2026 dataset repo)
   should be stated whenever placement rates are shown.
 - The skill-gap comparison (`backend/queries/skill_gap.py`) is a starting
   point, not a proof of anything causal -- same caveat the dataset's own
-  `explore_python.py` example ends on.
+  `examples/explore_python.py` ends on.
+- Model availability on DigitalOcean's serverless inference API can change;
+  confirm the current model list (`GET /v1/models`) rather than assuming
+  `DO_INFERENCE_MODEL`'s default is still valid.

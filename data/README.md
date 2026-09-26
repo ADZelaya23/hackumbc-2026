@@ -19,5 +19,5 @@ data/
 └── sample/            # optional 10% referentially-complete cut, same filenames
 ```
 
-`ingest/load_to_snowflake.py` reads from this folder by default. Point it at
+`ingest/load_to_postgres.py` reads from this folder by default. Point it at
 `data/sample/` instead if you want to iterate fast before loading the full set.

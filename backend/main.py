@@ -4,7 +4,7 @@
 
 Two endpoints:
   POST /api/dashboard  -- the four initial outputs, computed deterministically
-  POST /api/chat       -- grounded follow-up Q&A via Snowflake Cortex
+  POST /api/chat       -- grounded follow-up Q&A via DigitalOcean Gradient AI
 
 Both take the same ProfileRequest so the chat stays anchored to whatever the
 dashboard already showed.
@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
-from backend.cortex import ask as cortex_ask
+from backend.llm import ask as llm_ask
 from backend.models import ChatRequest, ChatResponse, DashboardResponse, ProfileRequest
 from backend.queries.activities import correlated_activities
 from backend.queries.career_path import alumni_pathways, typical_first_jobs
@@ -58,5 +58,5 @@ def chat(request: ChatRequest):
         f"Common next roles: {d.alumni_pathways}. "
         f"Correlated activities: {d.correlated_activities}."
     )
-    answer = cortex_ask(request.question, context)
+    answer = llm_ask(request.question, context)
     return ChatResponse(answer=answer)
